@@ -123,7 +123,14 @@ struct JoinView: View {
         .fullScreenCover(isPresented: $showQRScanner) {
             ZStack(alignment: .topLeading) {
                 QRScannerView { value in
-                    joinCode = value
+                    // Extract join code from URL (?join=XXXX) or use value directly
+                    if let url = URL(string: value),
+                       let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                       let joinParam = components.queryItems?.first(where: { $0.name == "join" })?.value {
+                        joinCode = joinParam
+                    } else {
+                        joinCode = value
+                    }
                     showQRScanner = false
                 } onCancel: {
                     showQRScanner = false
