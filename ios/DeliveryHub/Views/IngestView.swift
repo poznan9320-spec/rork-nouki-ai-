@@ -481,9 +481,8 @@ struct CameraView: UIViewControllerRepresentable {
         nonisolated func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             let image = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage
             guard let image else { return }
-            let capture = onCapture
-            Task { @MainActor in
-                capture(image)
+            Task { @MainActor [weak self] in
+                self?.onCapture(image)
                 picker.dismiss(animated: true)
             }
         }

@@ -1,5 +1,6 @@
 import SwiftUI
 import VisionKit
+import Vision
 import AVFoundation
 
 struct QRScannerView: UIViewControllerRepresentable {
