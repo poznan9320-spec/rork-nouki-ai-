@@ -301,8 +301,7 @@ struct CameraButton: View {
             .clipShape(.rect(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(hex: "1E3A5A").opacity(0.8), lineWidth: 1)
-                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                    .strokeBorder(Color(hex: "1E3A5A").opacity(0.8), style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
             )
         }
     }

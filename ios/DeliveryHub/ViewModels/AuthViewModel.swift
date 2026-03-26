@@ -21,6 +21,21 @@ final class AuthViewModel {
         ) { [weak self] _ in
             self?.logout()
         }
+        if isLoggedIn {
+            Task { await loadCurrentUser() }
+        }
+    }
+
+    @MainActor
+    func loadCurrentUser() async {
+        do {
+            let (u, c) = try await NetworkService.shared.fetchCurrentUser()
+            user = u
+            company = c
+        } catch {
+            // Token expired or invalid — force logout
+            logout()
+        }
     }
 
     @MainActor

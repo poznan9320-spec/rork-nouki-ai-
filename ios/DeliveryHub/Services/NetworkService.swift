@@ -101,6 +101,13 @@ nonisolated final class NetworkService: Sendable {
         return try await perform(request)
     }
 
+    func fetchCurrentUser() async throws -> (user: User, company: Company) {
+        struct MeResponse: Codable { let user: User; let company: Company }
+        let request = try makeRequest(path: "/api/auth/me")
+        let res: MeResponse = try await perform(request)
+        return (res.user, res.company)
+    }
+
     func fetchDeliveries() async throws -> [Delivery] {
         let request = try makeRequest(path: "/api/mobile/deliveries")
         return try await perform(request)

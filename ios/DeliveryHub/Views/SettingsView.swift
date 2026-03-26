@@ -27,7 +27,7 @@ struct SettingsView: View {
                                 Text(authViewModel.user?.email ?? "")
                                     .font(.caption)
                                     .foregroundColor(.white.opacity(0.55))
-                                Text(authViewModel.user?.role == "ADMIN" ? "管理者" : "従業員")
+                                Text(["ADMIN", "OWNER"].contains(authViewModel.user?.role ?? "") ? "管理者" : "従業員")
                                     .font(.caption2)
                                     .fontWeight(.semibold)
                                     .padding(.horizontal, 8)
