@@ -92,6 +92,6 @@ struct SettingsView: View {
         if let name = authViewModel.user?.name, !name.isEmpty {
             return String(name.prefix(2)).uppercased()
         }
-        return String(authViewModel.user?.email?.prefix(1) ?? "?").uppercased()
+        return String(authViewModel.user?.email.prefix(1) ?? "?").uppercased()
     }
 }

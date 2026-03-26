@@ -1,7 +1,7 @@
 import Foundation
 
-extension Notification.Name {
-    static let unauthorized = Notification.Name("unauthorized")
+nonisolated extension Notification.Name {
+    nonisolated static let unauthorized = Notification.Name("unauthorized")
 }
 
 @Observable

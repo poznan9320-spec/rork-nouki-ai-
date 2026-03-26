@@ -1,10 +1,10 @@
 import Foundation
 import Security
 
-enum KeychainService {
+nonisolated enum KeychainService {
     private static let tokenKey = "ai_nouki_auth_token"
 
-    static func saveToken(_ token: String) {
+    nonisolated static func saveToken(_ token: String) {
         let data = Data(token.utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -16,7 +16,7 @@ enum KeychainService {
         SecItemAdd(query as CFDictionary, nil)
     }
 
-    static func loadToken() -> String? {
+    nonisolated static func loadToken() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: tokenKey,
@@ -30,7 +30,7 @@ enum KeychainService {
         return token
     }
 
-    static func deleteToken() {
+    nonisolated static func deleteToken() {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: tokenKey,
