@@ -3,6 +3,12 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var authViewModel: AuthViewModel
 
+    @State private var notifEnabled: Bool = true
+    @State private var todayHour: Int = 7
+    @State private var tomorrowHour: Int = 18
+    @State private var loadingNotif: Bool = true
+    @State private var savingNotif: Bool = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -53,6 +59,75 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.white.opacity(0.06))
 
+                    // 通知設定
+                    Section(header: Text("通知").foregroundColor(.white.opacity(0.4))) {
+                        if loadingNotif {
+                            HStack {
+                                Spacer()
+                                ProgressView().tint(Color(hex: "1E90FF"))
+                                Spacer()
+                            }
+                        } else {
+                            // 有効/無効トグル
+                            Toggle(isOn: $notifEnabled) {
+                                Label("通知を有効にする", systemImage: "bell.fill")
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            .tint(Color(hex: "1E90FF"))
+
+                            if notifEnabled {
+                                // 本日納品の通知時刻
+                                HStack {
+                                    Label("本日納品", systemImage: "clock.fill")
+                                        .foregroundColor(.white.opacity(0.7))
+                                    Spacer()
+                                    Picker("", selection: $todayHour) {
+                                        ForEach(0..<24) { h in
+                                            Text(String(format: "%02d:00", h)).tag(h)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .tint(Color(hex: "1E90FF"))
+                                }
+
+                                // 明日納品の通知時刻
+                                HStack {
+                                    Label("明日納品", systemImage: "clock")
+                                        .foregroundColor(.white.opacity(0.7))
+                                    Spacer()
+                                    Picker("", selection: $tomorrowHour) {
+                                        ForEach(0..<24) { h in
+                                            Text(String(format: "%02d:00", h)).tag(h)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .tint(Color(hex: "1E90FF"))
+                                }
+                            }
+
+                            // 保存ボタン
+                            Button {
+                                Task { await saveNotifSettings() }
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    if savingNotif {
+                                        ProgressView().tint(.white).scaleEffect(0.8)
+                                        Text("保存中...").foregroundColor(.white.opacity(0.6))
+                                    } else {
+                                        Text("保存")
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                            .disabled(savingNotif)
+                            .listRowBackground(Color(hex: "1E90FF").opacity(0.8))
+                        }
+                    }
+                    .listRowBackground(Color.white.opacity(0.06))
+
                     // アプリ情報
                     Section(header: Text("アプリ").foregroundColor(.white.opacity(0.4))) {
                         HStack {
@@ -85,6 +160,7 @@ struct SettingsView: View {
             }
             .navigationTitle("設定")
             .navigationBarTitleDisplayMode(.large)
+            .task { await loadNotifSettings() }
         }
     }
 
@@ -93,5 +169,35 @@ struct SettingsView: View {
             return String(name.prefix(2)).uppercased()
         }
         return String(authViewModel.user?.email.prefix(1) ?? "?").uppercased()
+    }
+
+    @MainActor
+    private func loadNotifSettings() async {
+        loadingNotif = true
+        do {
+            let s = try await NetworkService.shared.fetchNotificationSettings()
+            todayHour = s.todayHour
+            tomorrowHour = s.tomorrowHour
+            notifEnabled = s.enabled
+        } catch {
+            // Use defaults silently
+        }
+        loadingNotif = false
+    }
+
+    @MainActor
+    private func saveNotifSettings() async {
+        savingNotif = true
+        do {
+            let s = try await NetworkService.shared.updateNotificationSettings(
+                NotificationSettings(todayHour: todayHour, tomorrowHour: tomorrowHour, enabled: notifEnabled)
+            )
+            todayHour = s.todayHour
+            tomorrowHour = s.tomorrowHour
+            notifEnabled = s.enabled
+        } catch {
+            // Ignore silently; user can retry
+        }
+        savingNotif = false
     }
 }

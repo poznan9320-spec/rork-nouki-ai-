@@ -48,6 +48,12 @@ nonisolated struct SaveResponse: Codable {
     let skipped: Int
 }
 
+nonisolated struct NotificationSettings: Codable {
+    var todayHour: Int
+    var tomorrowHour: Int
+    var enabled: Bool
+}
+
 nonisolated final class NetworkService: Sendable {
     static let shared = NetworkService()
     // URL inlined directly to avoid naming conflict with RORK-generated Config type
@@ -193,6 +199,17 @@ nonisolated final class NetworkService: Sendable {
         }
         let body = try JSONEncoder().encode(SaveReq(items: items, supplierName: supplierName, sourceType: sourceType, sourceUrl: sourceUrl))
         let request = try makeRequest(path: "/api/ingest/save", method: "POST", body: body)
+        return try await perform(request)
+    }
+
+    func fetchNotificationSettings() async throws -> NotificationSettings {
+        let request = try makeRequest(path: "/api/mobile/notification-settings")
+        return try await perform(request)
+    }
+
+    func updateNotificationSettings(_ settings: NotificationSettings) async throws -> NotificationSettings {
+        let body = try JSONEncoder().encode(settings)
+        let request = try makeRequest(path: "/api/mobile/notification-settings", method: "PUT", body: body)
         return try await perform(request)
     }
 

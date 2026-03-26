@@ -1,43 +1,35 @@
 import SwiftUI
 
-struct SearchHistoryItem: Identifiable {
-    let id: UUID = UUID()
-    let query: String
-    let reply: String
-    let date: Date
+struct ChatMessage: Identifiable {
+    let id = UUID()
+    enum Role { case user, assistant }
+    let role: Role
+    let content: String
 }
 
 @Observable
 final class SearchViewModel {
-    var query: String = ""
-    var currentReply: String? = nil
+    var messages: [ChatMessage] = []
+    var input: String = ""
     var isLoading: Bool = false
     var errorMessage: String? = nil
-    var history: [SearchHistoryItem] = []
 
     @MainActor
-    func search() async {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    func send() async {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        messages.append(ChatMessage(role: .user, content: trimmed))
+        input = ""
         isLoading = true
         errorMessage = nil
-        currentReply = nil
         do {
             let reply = try await NetworkService.shared.sendChat(message: trimmed)
-            currentReply = reply
-            history.insert(SearchHistoryItem(query: trimmed, reply: reply, date: Date()), at: 0)
-            if history.count > 20 { history = Array(history.prefix(20)) }
+            messages.append(ChatMessage(role: .assistant, content: reply))
         } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch {
-            errorMessage = "検索に失敗しました。"
+            errorMessage = "送信に失敗しました。"
         }
         isLoading = false
-    }
-
-    func clear() {
-        query = ""
-        currentReply = nil
-        errorMessage = nil
     }
 }

@@ -52,28 +52,27 @@ struct HomeView: View {
     }
 
     private var filterPicker: some View {
-        HStack(spacing: 0) {
-            ForEach(DateFilter.allCases, id: \.rawValue) { filter in
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.selectedFilter = filter
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(DateFilter.allCases, id: \.rawValue) { filter in
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.selectedFilter = filter
+                        }
+                    } label: {
+                        Text(filter.title)
+                            .font(.system(size: 13, weight: .semibold))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .foregroundStyle(viewModel.selectedFilter == filter ? .white : Color(hex: "7A9ABF"))
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.selectedFilter == filter ? Color(hex: "1E90FF") : Color(hex: "152234"))
+                            )
                     }
-                } label: {
-                    Text(filter.title)
-                        .font(.system(size: 15, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .foregroundStyle(viewModel.selectedFilter == filter ? .white : Color(hex: "7A9ABF"))
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(viewModel.selectedFilter == filter ? Color(hex: "1E90FF") : Color.clear)
-                        )
                 }
             }
         }
-        .padding(4)
-        .background(Color(hex: "152234"))
-        .clipShape(.rect(cornerRadius: 14))
     }
 
     private var deliveryList: some View {

@@ -4,12 +4,16 @@ enum DateFilter: Int, CaseIterable {
     case today = 0
     case tomorrow = 1
     case week = 2
+    case all = 3
+    case past = 4
 
     var title: String {
         switch self {
         case .today: return "今日"
         case .tomorrow: return "明日"
-        case .week: return "1週間"
+        case .week: return "今週"
+        case .all: return "全期間"
+        case .past: return "過去"
         }
     }
 }
@@ -24,6 +28,7 @@ final class HomeViewModel {
     var filteredDeliveries: [Delivery] {
         let calendar = Calendar.current
         let now = Date()
+        let todayStart = calendar.startOfDay(for: now)
         return deliveries.filter { delivery in
             switch selectedFilter {
             case .today:
@@ -31,8 +36,13 @@ final class HomeViewModel {
             case .tomorrow:
                 return calendar.isDateInTomorrow(delivery.deliveryDate)
             case .week:
-                let weekEnd = calendar.date(byAdding: .day, value: 7, to: now) ?? now
-                return delivery.deliveryDate >= now && delivery.deliveryDate <= weekEnd
+                let weekEnd = calendar.date(byAdding: .day, value: 7, to: todayStart) ?? now
+                return delivery.deliveryDate >= todayStart && delivery.deliveryDate <= weekEnd
+            case .all:
+                return delivery.deliveryDate >= todayStart
+            case .past:
+                let twoMonthsAgo = calendar.date(byAdding: .month, value: -2, to: todayStart) ?? todayStart
+                return delivery.deliveryDate >= twoMonthsAgo && delivery.deliveryDate < todayStart
             }
         }
     }
