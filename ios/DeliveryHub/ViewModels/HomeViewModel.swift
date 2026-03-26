@@ -43,6 +43,7 @@ final class HomeViewModel {
         errorMessage = nil
         do {
             deliveries = try await NetworkService.shared.fetchDeliveries()
+            await NotificationService.shared.scheduleDeliveryNotifications(deliveries: deliveries)
         } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch {

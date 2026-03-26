@@ -5,6 +5,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @FocusState private var focusedField: Field?
+    @State private var showJoin: Bool = false
 
     enum Field { case email, password }
 
@@ -117,9 +118,27 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 28)
 
-                    Spacer().frame(height: 60)
+                    Spacer().frame(height: 32)
+
+                    Button {
+                        showJoin = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "qrcode")
+                                .font(.system(size: 14))
+                            Text("会社に参加（新規登録）")
+                                .font(.subheadline)
+                        }
+                        .foregroundColor(Color(hex: "1E90FF"))
+                    }
+
+                    Spacer().frame(height: 40)
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showJoin) {
+            JoinView()
+                .preferredColorScheme(.dark)
         }
     }
 }

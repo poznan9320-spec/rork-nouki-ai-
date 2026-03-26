@@ -22,6 +22,31 @@ nonisolated enum NetworkError: Error, LocalizedError {
     }
 }
 
+// Models for OCR ingest
+struct OCRItem: Codable, Identifiable {
+    var id: String = UUID().uuidString
+    var productName: String
+    var quantity: Int
+    var deliveryDate: String  // YYYY-MM-DD
+    var notes: String?
+
+    enum CodingKeys: String, CodingKey {
+        case productName, quantity, deliveryDate, notes
+    }
+}
+
+struct OCRResponse: Codable {
+    let items: [OCRItem]
+    let sourceType: String
+    let supplierName: String?
+    let fileUrl: String?
+}
+
+struct SaveResponse: Codable {
+    let imported: Int
+    let skipped: Int
+}
+
 nonisolated final class NetworkService: Sendable {
     static let shared = NetworkService()
     private let baseURL = Config.apiBaseURL
@@ -99,6 +124,80 @@ nonisolated final class NetworkService: Sendable {
         }
         let body = try JSONEncoder().encode(OrderReq(productName: productName, quantity: quantity, details: details))
         let request = try makeRequest(path: "/api/mobile/request", method: "POST", body: body)
+        struct Empty: Codable {}
+        let _: Empty = try await perform(request)
+    }
+
+    // MARK: - OCR Ingest
+
+    func ingestOCR(imageData: Data?, mimeType: String = "image/jpeg", text: String?, supplierName: String?) async throws -> OCRResponse {
+        guard let url = URL(string: baseURL + "/api/ingest/ocr") else { throw NetworkError.invalidURL }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var body = Data()
+
+        func append(_ string: String) {
+            body.append(Data(string.utf8))
+        }
+
+        if let imageData = imageData {
+            append("--\(boundary)\r\n")
+            append("Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\n")
+            append("Content-Type: \(mimeType)\r\n\r\n")
+            body.append(imageData)
+            append("\r\n")
+        }
+
+        if let text = text, !text.isEmpty {
+            append("--\(boundary)\r\n")
+            append("Content-Disposition: form-data; name=\"text\"\r\n\r\n")
+            append(text)
+            append("\r\n")
+        }
+
+        if let supplierName = supplierName, !supplierName.isEmpty {
+            append("--\(boundary)\r\n")
+            append("Content-Disposition: form-data; name=\"supplierName\"\r\n\r\n")
+            append(supplierName)
+            append("\r\n")
+        }
+
+        append("--\(boundary)--\r\n")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 60
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let token = KeychainService.loadToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = body
+
+        return try await perform(request)
+    }
+
+    func ingestSave(items: [OCRItem], supplierName: String?, sourceType: String, sourceUrl: String?) async throws -> SaveResponse {
+        struct SaveReq: Codable {
+            let items: [OCRItem]
+            let supplierName: String?
+            let sourceType: String
+            let sourceUrl: String?
+        }
+        let encoder = JSONEncoder()
+        let body = try encoder.encode(SaveReq(items: items, supplierName: supplierName, sourceType: sourceType, sourceUrl: sourceUrl))
+        let request = try makeRequest(path: "/api/ingest/save", method: "POST", body: body)
+        return try await perform(request)
+    }
+
+    func registerEmployee(name: String, email: String, password: String, joinCode: String) async throws {
+        struct RegReq: Codable {
+            let name: String
+            let email: String
+            let password: String
+            let joinCode: String
+        }
+        let body = try JSONEncoder().encode(RegReq(name: name, email: email, password: password, joinCode: joinCode))
+        let request = try makeRequest(path: "/api/mobile/register-employee", method: "POST", body: body)
         struct Empty: Codable {}
         let _: Empty = try await perform(request)
     }
