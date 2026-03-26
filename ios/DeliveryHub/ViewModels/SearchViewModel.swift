@@ -23,7 +23,7 @@ final class SearchViewModel {
         errorMessage = nil
         currentReply = nil
         do {
-            let reply = try await NetworkService.shared.sendChat(query: trimmed)
+            let reply = try await NetworkService.shared.sendChat(message: trimmed)
             currentReply = reply
             history.insert(SearchHistoryItem(query: trimmed, reply: reply, date: Date()), at: 0)
             if history.count > 20 { history = Array(history.prefix(20)) }

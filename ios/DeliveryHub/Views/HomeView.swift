@@ -189,9 +189,11 @@ struct DeliveryCardView: View {
                                     .font(.system(size: 17, weight: .bold))
                                     .foregroundStyle(.white)
                                     .lineLimit(isExpanded ? nil : 1)
-                                Text(delivery.manufacturer)
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(Color(hex: "7A9ABF"))
+                                if let supplier = delivery.supplierName {
+                                    Text(supplier)
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(Color(hex: "7A9ABF"))
+                                }
                             }
                             Spacer()
                             StatusBadge(status: delivery.status, color: statusColor)
