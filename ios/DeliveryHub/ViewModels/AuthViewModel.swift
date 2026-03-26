@@ -1,5 +1,9 @@
 import Foundation
 
+extension Notification.Name {
+    static let unauthorized = Notification.Name("unauthorized")
+}
+
 @Observable
 final class AuthViewModel {
     var isLoggedIn: Bool = false
@@ -10,6 +14,13 @@ final class AuthViewModel {
 
     init() {
         isLoggedIn = KeychainService.loadToken() != nil
+        NotificationCenter.default.addObserver(
+            forName: .unauthorized,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.logout()
+        }
     }
 
     @MainActor

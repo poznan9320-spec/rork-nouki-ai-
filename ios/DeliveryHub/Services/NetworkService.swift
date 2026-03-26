@@ -45,6 +45,7 @@ nonisolated final class NetworkService: Sendable {
             guard let http = response as? HTTPURLResponse else { throw NetworkError.noData }
 
             if http.statusCode == 401 || http.statusCode == 403 {
+                NotificationCenter.default.post(name: .unauthorized, object: nil)
                 throw NetworkError.unauthorized
             }
             guard (200..<300).contains(http.statusCode) else {
