@@ -161,10 +161,10 @@ struct DeliveryCardView: View {
     private var statusColor: Color {
         switch delivery.status {
         case .pending: return .orange
-        case .confirmed: return Color(hex: "1E90FF")
         case .shipped: return Color(hex: "00BCD4")
         case .delivered: return .green
-        case .cancelled: return .red
+        case .delayed: return .red
+        case .cancelled: return Color(hex: "7A9ABF")
         case .unknown: return Color(hex: "7A9ABF")
         }
     }

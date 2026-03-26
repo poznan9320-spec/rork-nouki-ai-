@@ -82,21 +82,21 @@ nonisolated final class NetworkService: Sendable {
 
     func sendChat(message: String) async throws -> String {
         struct ChatReq: Codable { let message: String }
-        struct ChatRes: Codable { let reply: String }
+        struct ChatRes: Codable { let response: String }
         let body = try JSONEncoder().encode(ChatReq(message: message))
-        let request = try makeRequest(path: "/api/mobile/chat", method: "POST", body: body)
+        // AIチャットは /api/admin/chat を使用（/api/mobile/chat はチームメッセージ用）
+        let request = try makeRequest(path: "/api/admin/chat", method: "POST", body: body)
         let res: ChatRes = try await perform(request)
-        return res.reply
+        return res.response
     }
 
-    func sendOrderRequest(productName: String, quantity: Int, memo: String?, imageBase64: String?) async throws {
+    func sendOrderRequest(productName: String, quantity: Int, details: String?, imageBase64: String?) async throws {
         struct OrderReq: Codable {
             let productName: String
             let quantity: Int
-            let memo: String?
-            let image: String?
+            let details: String?
         }
-        let body = try JSONEncoder().encode(OrderReq(productName: productName, quantity: quantity, memo: memo, image: imageBase64))
+        let body = try JSONEncoder().encode(OrderReq(productName: productName, quantity: quantity, details: details))
         let request = try makeRequest(path: "/api/mobile/request", method: "POST", body: body)
         struct Empty: Codable {}
         let _: Empty = try await perform(request)

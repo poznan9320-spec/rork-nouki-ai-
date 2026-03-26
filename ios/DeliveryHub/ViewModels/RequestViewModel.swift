@@ -35,7 +35,7 @@ final class RequestViewModel {
             try await NetworkService.shared.sendOrderRequest(
                 productName: productName.trimmingCharacters(in: .whitespacesAndNewlines),
                 quantity: quantity,
-                memo: memo.trimmingCharacters(in: .whitespacesAndNewlines),
+                details: memo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : memo.trimmingCharacters(in: .whitespacesAndNewlines),
                 imageBase64: imageBase64
             )
             successMessage = "発注依頼を送信しました。"
