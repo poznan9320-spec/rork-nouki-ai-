@@ -1,6 +1,6 @@
 import Foundation
 
-struct User: Codable {
+nonisolated struct User: Codable {
     let id: String
     let email: String
     let name: String?
@@ -8,12 +8,12 @@ struct User: Codable {
     let status: String?
 }
 
-struct Company: Codable {
+nonisolated struct Company: Codable {
     let id: String
     let name: String
 }
 
-struct LoginResponse: Codable {
+nonisolated struct LoginResponse: Codable {
     let token: String
     let user: User
     let company: Company

@@ -22,8 +22,9 @@ nonisolated enum NetworkError: Error, LocalizedError {
     }
 }
 
-// Models for OCR ingest
-struct OCRItem: Codable, Identifiable {
+// nonisolated to avoid @MainActor inference
+// (project uses SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor)
+nonisolated struct OCRItem: Codable, Identifiable {
     var id: String = UUID().uuidString
     var productName: String
     var quantity: Int
@@ -35,21 +36,22 @@ struct OCRItem: Codable, Identifiable {
     }
 }
 
-struct OCRResponse: Codable {
+nonisolated struct OCRResponse: Codable {
     let items: [OCRItem]
     let sourceType: String
     let supplierName: String?
     let fileUrl: String?
 }
 
-struct SaveResponse: Codable {
+nonisolated struct SaveResponse: Codable {
     let imported: Int
     let skipped: Int
 }
 
 nonisolated final class NetworkService: Sendable {
     static let shared = NetworkService()
-    private let baseURL = Config.apiBaseURL
+    // URL inlined directly to avoid naming conflict with RORK-generated Config type
+    private let baseURL = "https://ai-nouki2.vercel.app"
 
     private func makeRequest(path: String, method: String = "GET", body: Data? = nil) throws -> URLRequest {
         guard let url = URL(string: baseURL + path) else { throw NetworkError.invalidURL }
@@ -117,7 +119,6 @@ nonisolated final class NetworkService: Sendable {
         struct ChatReq: Codable { let message: String }
         struct ChatRes: Codable { let response: String }
         let body = try JSONEncoder().encode(ChatReq(message: message))
-        // AIチャットは /api/admin/chat を使用（/api/mobile/chat はチームメッセージ用）
         let request = try makeRequest(path: "/api/admin/chat", method: "POST", body: body)
         let res: ChatRes = try await perform(request)
         return res.response
@@ -190,8 +191,7 @@ nonisolated final class NetworkService: Sendable {
             let sourceType: String
             let sourceUrl: String?
         }
-        let encoder = JSONEncoder()
-        let body = try encoder.encode(SaveReq(items: items, supplierName: supplierName, sourceType: sourceType, sourceUrl: sourceUrl))
+        let body = try JSONEncoder().encode(SaveReq(items: items, supplierName: supplierName, sourceType: sourceType, sourceUrl: sourceUrl))
         let request = try makeRequest(path: "/api/ingest/save", method: "POST", body: body)
         return try await perform(request)
     }
