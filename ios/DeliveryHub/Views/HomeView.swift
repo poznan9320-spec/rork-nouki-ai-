@@ -17,6 +17,12 @@ struct HomeView: View {
                     if !viewModel.availableSuppliers.isEmpty {
                         supplierPicker
                             .padding(.horizontal, 16)
+                            .padding(.bottom, viewModel.availableStatuses.count > 1 ? 4 : 8)
+                    }
+
+                    if viewModel.availableStatuses.count > 1 {
+                        statusPicker
+                            .padding(.horizontal, 16)
                             .padding(.bottom, 8)
                     }
 
@@ -65,6 +71,7 @@ struct HomeView: View {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             viewModel.selectedFilter = filter
                             viewModel.selectedSupplier = nil
+                            viewModel.selectedStatus = nil
                         }
                     } label: {
                         Text(filter.title)
@@ -114,6 +121,47 @@ struct HomeView: View {
                             .background(
                                 Capsule()
                                     .fill(viewModel.selectedSupplier == supplier ? Color(hex: "1E5A9A") : Color(hex: "0E1E30"))
+                            )
+                    }
+                }
+            }
+        }
+    }
+
+    private var statusPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.selectedStatus = nil
+                    }
+                } label: {
+                    Text("全ステータス")
+                        .font(.system(size: 12, weight: .medium))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .foregroundStyle(viewModel.selectedStatus == nil ? .white : Color(hex: "7A9ABF"))
+                        .background(
+                            Capsule()
+                                .fill(viewModel.selectedStatus == nil ? Color(hex: "102A43") : Color(hex: "0E1E30"))
+                        )
+                }
+                ForEach(viewModel.availableStatuses, id: \.rawValue) { status in
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.selectedStatus = status
+                        }
+                    } label: {
+                        Text(status.displayName)
+                            .font(.system(size: 12, weight: .medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .foregroundStyle(viewModel.selectedStatus == status ? .white : Color(hex: status.colorHex))
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.selectedStatus == status
+                                        ? Color(hex: status.colorHex)
+                                        : Color(hex: status.colorHex).opacity(0.15))
                             )
                     }
                 }

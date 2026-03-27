@@ -25,6 +25,7 @@ final class HomeViewModel {
     var errorMessage: String? = nil
     var selectedFilter: DateFilter = .today
     var selectedSupplier: String? = nil
+    var selectedStatus: DeliveryStatus? = nil
 
     var dateFilteredDeliveries: [Delivery] {
         let calendar = Calendar.current
@@ -53,9 +54,18 @@ final class HomeViewModel {
         return Array(Set(names)).sorted()
     }
 
+    var availableStatuses: [DeliveryStatus] {
+        let statuses = dateFilteredDeliveries.map { $0.status }
+        let unique = Array(Set(statuses))
+        return DeliveryStatus.allCases.filter { unique.contains($0) }
+    }
+
     var filteredDeliveries: [Delivery] {
-        guard let supplier = selectedSupplier else { return dateFilteredDeliveries }
-        return dateFilteredDeliveries.filter { $0.supplierName == supplier }
+        dateFilteredDeliveries.filter { delivery in
+            let supplierOK = selectedSupplier == nil || delivery.supplierName == selectedSupplier
+            let statusOK = selectedStatus == nil || delivery.status == selectedStatus
+            return supplierOK && statusOK
+        }
     }
 
     @MainActor
