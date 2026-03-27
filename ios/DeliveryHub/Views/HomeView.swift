@@ -17,12 +17,6 @@ struct HomeView: View {
                     if !viewModel.availableSuppliers.isEmpty {
                         supplierPicker
                             .padding(.horizontal, 16)
-                            .padding(.bottom, viewModel.availableStatuses.count > 1 ? 4 : 8)
-                    }
-
-                    if viewModel.availableStatuses.count > 1 {
-                        statusPicker
-                            .padding(.horizontal, 16)
                             .padding(.bottom, 8)
                     }
 
@@ -71,7 +65,6 @@ struct HomeView: View {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             viewModel.selectedFilter = filter
                             viewModel.selectedSupplier = nil
-                            viewModel.selectedStatus = nil
                         }
                     } label: {
                         Text(filter.title)
@@ -121,47 +114,6 @@ struct HomeView: View {
                             .background(
                                 Capsule()
                                     .fill(viewModel.selectedSupplier == supplier ? Color(hex: "1E5A9A") : Color(hex: "0E1E30"))
-                            )
-                    }
-                }
-            }
-        }
-    }
-
-    private var statusPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.selectedStatus = nil
-                    }
-                } label: {
-                    Text("全ステータス")
-                        .font(.system(size: 12, weight: .medium))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .foregroundStyle(viewModel.selectedStatus == nil ? .white : Color(hex: "7A9ABF"))
-                        .background(
-                            Capsule()
-                                .fill(viewModel.selectedStatus == nil ? Color(hex: "102A43") : Color(hex: "0E1E30"))
-                        )
-                }
-                ForEach(viewModel.availableStatuses, id: \.rawValue) { status in
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            viewModel.selectedStatus = status
-                        }
-                    } label: {
-                        Text(status.displayName)
-                            .font(.system(size: 12, weight: .medium))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .foregroundStyle(viewModel.selectedStatus == status ? .white : Color(hex: status.colorHex))
-                            .background(
-                                Capsule()
-                                    .fill(viewModel.selectedStatus == status
-                                        ? Color(hex: status.colorHex)
-                                        : Color(hex: status.colorHex).opacity(0.15))
                             )
                     }
                 }
@@ -251,17 +203,6 @@ struct DeliveryCardView: View {
     let delivery: Delivery
     @State private var isExpanded: Bool = false
 
-    private var statusColor: Color {
-        switch delivery.status {
-        case .pending: return .orange
-        case .shipped: return Color(hex: "00BCD4")
-        case .delivered: return .green
-        case .delayed: return .red
-        case .cancelled: return Color(hex: "7A9ABF")
-        case .unknown: return Color(hex: "7A9ABF")
-        }
-    }
-
     var body: some View {
         Button {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
@@ -269,52 +210,44 @@ struct DeliveryCardView: View {
             }
         } label: {
             VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 0) {
-                    Rectangle()
-                        .fill(statusColor)
-                        .frame(width: 4)
-                        .clipShape(.rect(cornerRadius: 2))
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(delivery.productName)
-                                    .font(.system(size: 17, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .lineLimit(isExpanded ? nil : 1)
-                                if let supplier = delivery.supplierName {
-                                    Text(supplier)
-                                        .font(.system(size: 13))
-                                        .foregroundStyle(Color(hex: "7A9ABF"))
-                                }
-                            }
-                            Spacer()
-                            StatusBadge(status: delivery.status, color: statusColor)
-                        }
-
-                        HStack(spacing: 16) {
-                            InfoChip(icon: "shippingbox", value: "\(delivery.quantity)個")
-                            InfoChip(icon: "calendar", value: delivery.deliveryDate.formatted(.dateTime.month().day().hour().minute()))
-                        }
-
-                        if isExpanded, let notes = delivery.notes, !notes.isEmpty {
-                            Divider()
-                                .background(Color(hex: "2A4A6B"))
-                            HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: "note.text")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(Color(hex: "7A9ABF"))
-                                    .padding(.top, 1)
-                                Text(notes)
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(delivery.productName)
+                                .font(.system(size: 17, weight: .bold))
+                                .foregroundStyle(.white)
+                                .lineLimit(isExpanded ? nil : 1)
+                            if let supplier = delivery.supplierName {
+                                Text(supplier)
                                     .font(.system(size: 13))
-                                    .foregroundStyle(Color(hex: "A0C0E0"))
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .foregroundStyle(Color(hex: "7A9ABF"))
                             }
+                        }
+                        Spacer()
+                    }
+
+                    HStack(spacing: 16) {
+                        InfoChip(icon: "shippingbox", value: "\(delivery.quantity)個")
+                        InfoChip(icon: "calendar", value: delivery.deliveryDate.formatted(.dateTime.month().day().hour().minute()))
+                    }
+
+                    if isExpanded, let notes = delivery.notes, !notes.isEmpty {
+                        Divider()
+                            .background(Color(hex: "2A4A6B"))
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "note.text")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color(hex: "7A9ABF"))
+                                .padding(.top, 1)
+                            Text(notes)
+                                .font(.system(size: 13))
+                                .foregroundStyle(Color(hex: "A0C0E0"))
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 14)
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 14)
             }
             .background(Color(hex: "152234"))
             .clipShape(.rect(cornerRadius: 14))
@@ -325,25 +258,6 @@ struct DeliveryCardView: View {
             .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(.plain)
-    }
-}
-
-struct StatusBadge: View {
-    let status: DeliveryStatus
-    let color: Color
-
-    var body: some View {
-        Text(status.displayName)
-            .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.15))
-            .clipShape(.rect(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(color.opacity(0.4), lineWidth: 1)
-            )
     }
 }
 
