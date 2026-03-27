@@ -228,7 +228,7 @@ struct DeliveryCardView: View {
 
                     HStack(spacing: 16) {
                         InfoChip(icon: "shippingbox", value: "\(delivery.quantity)個")
-                        InfoChip(icon: "calendar", value: delivery.deliveryDate.formatted(.dateTime.month().day().hour().minute()))
+                        InfoChip(icon: "calendar", value: delivery.deliveryDate.formatted(.dateTime.year().month().day()))
                     }
 
                     if isExpanded, let notes = delivery.notes, !notes.isEmpty {
@@ -281,37 +281,27 @@ struct SkeletonCardView: View {
     @State private var shimmer: Bool = false
 
     var body: some View {
-        HStack(spacing: 0) {
-            Rectangle()
-                .fill(Color(hex: "2A4A6B"))
-                .frame(width: 4)
-                .clipShape(.rect(cornerRadius: 2))
-
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(shimmerGradient)
-                        .frame(width: 160, height: 18)
-                    Spacer()
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(shimmerGradient)
-                        .frame(width: 56, height: 24)
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(shimmerGradient)
+                    .frame(width: 160, height: 18)
+                Spacer()
+            }
+            RoundedRectangle(cornerRadius: 4)
+                .fill(shimmerGradient)
+                .frame(width: 100, height: 13)
+            HStack(spacing: 16) {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(shimmerGradient)
-                    .frame(width: 100, height: 13)
-                HStack(spacing: 16) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(shimmerGradient)
-                        .frame(width: 60, height: 13)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(shimmerGradient)
-                        .frame(width: 110, height: 13)
-                }
+                    .frame(width: 60, height: 13)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(shimmerGradient)
+                    .frame(width: 110, height: 13)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 14)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
         .background(Color(hex: "152234"))
         .clipShape(.rect(cornerRadius: 14))
         .overlay(
