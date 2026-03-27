@@ -1,4 +1,16 @@
 import Foundation
+import UIKit
+
+extension UIImage {
+    func resizedForOCR(maxSide: CGFloat) -> UIImage {
+        let size = self.size
+        guard size.width > maxSide || size.height > maxSide else { return self }
+        let scale = maxSide / max(size.width, size.height)
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in self.draw(in: CGRect(origin: .zero, size: newSize)) }
+    }
+}
 
 nonisolated enum NetworkError: Error, LocalizedError {
     case invalidURL
