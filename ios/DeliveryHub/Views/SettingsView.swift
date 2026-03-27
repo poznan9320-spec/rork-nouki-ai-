@@ -179,6 +179,8 @@ struct SettingsView: View {
             todayHour = s.todayHour
             tomorrowHour = s.tomorrowHour
             notifEnabled = s.enabled
+            UserDefaults.standard.set(s.todayHour, forKey: "notifTodayHour")
+            UserDefaults.standard.set(s.tomorrowHour, forKey: "notifTomorrowHour")
         } catch {
             // Use defaults silently
         }
@@ -195,6 +197,9 @@ struct SettingsView: View {
             todayHour = s.todayHour
             tomorrowHour = s.tomorrowHour
             notifEnabled = s.enabled
+            // ローカル通知にも反映
+            UserDefaults.standard.set(s.todayHour, forKey: "notifTodayHour")
+            UserDefaults.standard.set(s.tomorrowHour, forKey: "notifTomorrowHour")
         } catch {
             // Ignore silently; user can retry
         }

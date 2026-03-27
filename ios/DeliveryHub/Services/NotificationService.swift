@@ -1,6 +1,10 @@
 import UserNotifications
 import Foundation
 
+private extension Int {
+    func nonZeroOrDefault(_ fallback: Int) -> Int { self == 0 ? fallback : self }
+}
+
 final class NotificationService: @unchecked Sendable {
     static let shared = NotificationService()
 
@@ -32,10 +36,13 @@ final class NotificationService: @unchecked Sendable {
         let todayItems = deliveries.filter { calendar.isDate($0.deliveryDate, inSameDayAs: today) }
         let tomorrowItems = deliveries.filter { calendar.isDate($0.deliveryDate, inSameDayAs: tomorrow) }
 
-        // 本日の入荷 → 朝7時に通知
+        let todayHour = UserDefaults.standard.integer(forKey: "notifTodayHour").nonZeroOrDefault(7)
+        let tomorrowHour = UserDefaults.standard.integer(forKey: "notifTomorrowHour").nonZeroOrDefault(18)
+
+        // 本日の入荷通知
         if !todayItems.isEmpty {
             var components = calendar.dateComponents([.year, .month, .day], from: today)
-            components.hour = 7
+            components.hour = todayHour
             components.minute = 0
 
             let content = UNMutableNotificationContent()
@@ -51,10 +58,10 @@ final class NotificationService: @unchecked Sendable {
             try? await center.add(request)
         }
 
-        // 明日の入荷 → 当日の夕方18時に通知
+        // 明日の入荷通知
         if !tomorrowItems.isEmpty {
             var components = calendar.dateComponents([.year, .month, .day], from: today)
-            components.hour = 18
+            components.hour = tomorrowHour
             components.minute = 0
 
             let content = UNMutableNotificationContent()
