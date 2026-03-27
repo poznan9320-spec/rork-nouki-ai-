@@ -12,7 +12,13 @@ struct HomeView: View {
                     filterPicker
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, viewModel.availableSuppliers.isEmpty ? 8 : 4)
+
+                    if !viewModel.availableSuppliers.isEmpty {
+                        supplierPicker
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+                    }
 
                     if viewModel.isLoading {
                         skeletonList
@@ -58,6 +64,7 @@ struct HomeView: View {
                     Button {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             viewModel.selectedFilter = filter
+                            viewModel.selectedSupplier = nil
                         }
                     } label: {
                         Text(filter.title)
@@ -68,6 +75,45 @@ struct HomeView: View {
                             .background(
                                 Capsule()
                                     .fill(viewModel.selectedFilter == filter ? Color(hex: "1E90FF") : Color(hex: "152234"))
+                            )
+                    }
+                }
+            }
+        }
+    }
+
+    private var supplierPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.selectedSupplier = nil
+                    }
+                } label: {
+                    Text("すべて")
+                        .font(.system(size: 12, weight: .medium))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .foregroundStyle(viewModel.selectedSupplier == nil ? .white : Color(hex: "7A9ABF"))
+                        .background(
+                            Capsule()
+                                .fill(viewModel.selectedSupplier == nil ? Color(hex: "1E5A9A") : Color(hex: "0E1E30"))
+                        )
+                }
+                ForEach(viewModel.availableSuppliers, id: \.self) { supplier in
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.selectedSupplier = supplier
+                        }
+                    } label: {
+                        Text(supplier)
+                            .font(.system(size: 12, weight: .medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .foregroundStyle(viewModel.selectedSupplier == supplier ? .white : Color(hex: "7A9ABF"))
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.selectedSupplier == supplier ? Color(hex: "1E5A9A") : Color(hex: "0E1E30"))
                             )
                     }
                 }

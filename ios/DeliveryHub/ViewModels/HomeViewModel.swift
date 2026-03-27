@@ -24,8 +24,9 @@ final class HomeViewModel {
     var isLoading: Bool = false
     var errorMessage: String? = nil
     var selectedFilter: DateFilter = .today
+    var selectedSupplier: String? = nil
 
-    var filteredDeliveries: [Delivery] {
+    var dateFilteredDeliveries: [Delivery] {
         let calendar = Calendar.current
         let now = Date()
         let todayStart = calendar.startOfDay(for: now)
@@ -45,6 +46,16 @@ final class HomeViewModel {
                 return delivery.deliveryDate >= twoMonthsAgo && delivery.deliveryDate < todayStart
             }
         }
+    }
+
+    var availableSuppliers: [String] {
+        let names = dateFilteredDeliveries.compactMap { $0.supplierName }.filter { !$0.isEmpty }
+        return Array(Set(names)).sorted()
+    }
+
+    var filteredDeliveries: [Delivery] {
+        guard let supplier = selectedSupplier else { return dateFilteredDeliveries }
+        return dateFilteredDeliveries.filter { $0.supplierName == supplier }
     }
 
     @MainActor
