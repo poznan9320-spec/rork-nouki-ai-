@@ -48,9 +48,9 @@ final class IngestViewModel {
         ocrItems = []
 
         var imageData: Data? = nil
-        if let image = selectedImage {
-            let resized = image.resizedForOCR(maxSide: 1200)
-            imageData = resized.jpegData(compressionQuality: 0.6)
+        if let image = selectedImage,
+           let jpeg = image.jpegData(compressionQuality: 0.7) {
+            imageData = jpeg
         }
 
         let text = freeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : freeText

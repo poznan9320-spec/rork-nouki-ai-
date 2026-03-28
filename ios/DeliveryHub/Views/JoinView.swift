@@ -50,8 +50,8 @@ struct JoinView: View {
                                 Text("会社コード *")
                                     .fieldLabel()
                                 HStack(spacing: 10) {
-                                    TextField("例: clxxxxxx...", text: $joinCode)
-                                        .autocapitalization(.none)
+                                    TextField("例: AB12345", text: $joinCode)
+                                        .autocapitalization(.allCharacters)
                                         .autocorrectionDisabled()
                                         .focused($focused, equals: .joinCode)
                                         .submitLabel(.next)

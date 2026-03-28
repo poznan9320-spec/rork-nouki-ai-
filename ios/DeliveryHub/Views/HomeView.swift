@@ -12,13 +12,7 @@ struct HomeView: View {
                     filterPicker
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
-                        .padding(.bottom, viewModel.availableSuppliers.isEmpty ? 8 : 4)
-
-                    if !viewModel.availableSuppliers.isEmpty {
-                        supplierPicker
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 8)
-                    }
+                        .padding(.bottom, 8)
 
                     if viewModel.isLoading {
                         skeletonList
@@ -64,7 +58,6 @@ struct HomeView: View {
                     Button {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             viewModel.selectedFilter = filter
-                            viewModel.selectedSupplier = nil
                         }
                     } label: {
                         Text(filter.title)
@@ -75,45 +68,6 @@ struct HomeView: View {
                             .background(
                                 Capsule()
                                     .fill(viewModel.selectedFilter == filter ? Color(hex: "1E90FF") : Color(hex: "152234"))
-                            )
-                    }
-                }
-            }
-        }
-    }
-
-    private var supplierPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.selectedSupplier = nil
-                    }
-                } label: {
-                    Text("すべて")
-                        .font(.system(size: 12, weight: .medium))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .foregroundStyle(viewModel.selectedSupplier == nil ? .white : Color(hex: "7A9ABF"))
-                        .background(
-                            Capsule()
-                                .fill(viewModel.selectedSupplier == nil ? Color(hex: "1E5A9A") : Color(hex: "0E1E30"))
-                        )
-                }
-                ForEach(viewModel.availableSuppliers, id: \.self) { supplier in
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            viewModel.selectedSupplier = supplier
-                        }
-                    } label: {
-                        Text(supplier)
-                            .font(.system(size: 12, weight: .medium))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .foregroundStyle(viewModel.selectedSupplier == supplier ? .white : Color(hex: "7A9ABF"))
-                            .background(
-                                Capsule()
-                                    .fill(viewModel.selectedSupplier == supplier ? Color(hex: "1E5A9A") : Color(hex: "0E1E30"))
                             )
                     }
                 }
@@ -203,6 +157,17 @@ struct DeliveryCardView: View {
     let delivery: Delivery
     @State private var isExpanded: Bool = false
 
+    private var statusColor: Color {
+        switch delivery.status {
+        case .pending: return .orange
+        case .shipped: return Color(hex: "00BCD4")
+        case .delivered: return .green
+        case .delayed: return .red
+        case .cancelled: return Color(hex: "7A9ABF")
+        case .unknown: return Color(hex: "7A9ABF")
+        }
+    }
+
     var body: some View {
         Button {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
@@ -210,44 +175,52 @@ struct DeliveryCardView: View {
             }
         } label: {
             VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(delivery.productName)
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundStyle(.white)
-                                .lineLimit(isExpanded ? nil : 1)
-                            if let supplier = delivery.supplierName {
-                                Text(supplier)
-                                    .font(.system(size: 13))
+                HStack(spacing: 0) {
+                    Rectangle()
+                        .fill(statusColor)
+                        .frame(width: 4)
+                        .clipShape(.rect(cornerRadius: 2))
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(delivery.productName)
+                                    .font(.system(size: 17, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(isExpanded ? nil : 1)
+                                if let supplier = delivery.supplierName {
+                                    Text(supplier)
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(Color(hex: "7A9ABF"))
+                                }
+                            }
+                            Spacer()
+                            StatusBadge(status: delivery.status, color: statusColor)
+                        }
+
+                        HStack(spacing: 16) {
+                            InfoChip(icon: "shippingbox", value: "\(delivery.quantity)個")
+                            InfoChip(icon: "calendar", value: delivery.deliveryDate.formatted(.dateTime.month().day().hour().minute()))
+                        }
+
+                        if isExpanded, let notes = delivery.notes, !notes.isEmpty {
+                            Divider()
+                                .background(Color(hex: "2A4A6B"))
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "note.text")
+                                    .font(.system(size: 12))
                                     .foregroundStyle(Color(hex: "7A9ABF"))
+                                    .padding(.top, 1)
+                                Text(notes)
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(Color(hex: "A0C0E0"))
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                        Spacer()
                     }
-
-                    HStack(spacing: 16) {
-                        InfoChip(icon: "shippingbox", value: "\(delivery.quantity)個")
-                        InfoChip(icon: "calendar", value: delivery.deliveryDate.formatted(.dateTime.year().month().day()))
-                    }
-
-                    if isExpanded, let notes = delivery.notes, !notes.isEmpty {
-                        Divider()
-                            .background(Color(hex: "2A4A6B"))
-                        HStack(alignment: .top, spacing: 8) {
-                            Image(systemName: "note.text")
-                                .font(.system(size: 12))
-                                .foregroundStyle(Color(hex: "7A9ABF"))
-                                .padding(.top, 1)
-                            Text(notes)
-                                .font(.system(size: 13))
-                                .foregroundStyle(Color(hex: "A0C0E0"))
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 14)
             }
             .background(Color(hex: "152234"))
             .clipShape(.rect(cornerRadius: 14))
@@ -258,6 +231,25 @@ struct DeliveryCardView: View {
             .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct StatusBadge: View {
+    let status: DeliveryStatus
+    let color: Color
+
+    var body: some View {
+        Text(status.displayName)
+            .font(.system(size: 11, weight: .bold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(color.opacity(0.15))
+            .clipShape(.rect(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color.opacity(0.4), lineWidth: 1)
+            )
     }
 }
 
@@ -281,27 +273,37 @@ struct SkeletonCardView: View {
     @State private var shimmer: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(shimmerGradient)
-                    .frame(width: 160, height: 18)
-                Spacer()
-            }
-            RoundedRectangle(cornerRadius: 4)
-                .fill(shimmerGradient)
-                .frame(width: 100, height: 13)
-            HStack(spacing: 16) {
+        HStack(spacing: 0) {
+            Rectangle()
+                .fill(Color(hex: "2A4A6B"))
+                .frame(width: 4)
+                .clipShape(.rect(cornerRadius: 2))
+
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(shimmerGradient)
+                        .frame(width: 160, height: 18)
+                    Spacer()
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(shimmerGradient)
+                        .frame(width: 56, height: 24)
+                }
                 RoundedRectangle(cornerRadius: 4)
                     .fill(shimmerGradient)
-                    .frame(width: 60, height: 13)
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(shimmerGradient)
-                    .frame(width: 110, height: 13)
+                    .frame(width: 100, height: 13)
+                HStack(spacing: 16) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(shimmerGradient)
+                        .frame(width: 60, height: 13)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(shimmerGradient)
+                        .frame(width: 110, height: 13)
+                }
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 14)
         .background(Color(hex: "152234"))
         .clipShape(.rect(cornerRadius: 14))
         .overlay(

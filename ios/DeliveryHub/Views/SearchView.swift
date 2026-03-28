@@ -3,6 +3,7 @@ import SwiftUI
 struct SearchView: View {
     @State private var viewModel = SearchViewModel()
     @FocusState private var isInputFocused: Bool
+    @State private var scrollID: UUID? = nil
 
     private let suggestions = ["今週納期の商品は？", "明日の入荷予定", "数量が多い商品は？", "遅延している商品は？"]
 
@@ -225,7 +226,7 @@ struct MessageBubble: View {
                     }
                 )
 
-            if message.role == .assistant {
+            if message.role != .user {
                 Spacer(minLength: 48)
             }
         }
