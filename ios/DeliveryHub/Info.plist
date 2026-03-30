@@ -22,21 +22,11 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>ai-nouki2.vercel.app</key>
-			<dict>
-				<key>NSExceptionRequiresForwardSecrecy</key>
-				<false/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>現場写真の撮影に使用します</string>
+	<string>発注書・納品書の写真撮影によるAI-OCR自動登録と、従業員招待のQRコードスキャンに使用します。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>発注依頼に写真を添付するために使用します</string>
+	<string>フォトライブラリ内の発注書・納品書の画像をAI-OCRで読み取り、入荷データを自動登録するために使用します。</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>

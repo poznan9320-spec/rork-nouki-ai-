@@ -19,19 +19,15 @@ struct ContentView: View {
                     .tabItem { Label("AI 検索", systemImage: "sparkle.magnifyingglass") }
                     .tag(1)
 
-                RequestView()
-                    .tabItem { Label("発注依頼", systemImage: "doc.badge.plus") }
-                    .tag(2)
-
                 if isAdmin {
                     IngestView()
                         .tabItem { Label("入荷登録", systemImage: "doc.text.viewfinder") }
-                        .tag(3)
+                        .tag(2)
                 }
 
                 SettingsView(authViewModel: authViewModel)
                     .tabItem { Label("設定", systemImage: "gearshape.fill") }
-                    .tag(isAdmin ? 4 : 3)
+                    .tag(isAdmin ? 3 : 2)
             }
             .tint(Color(hex: "1E90FF"))
             .preferredColorScheme(.dark)

@@ -82,8 +82,10 @@ nonisolated final class NetworkService: Sendable {
                 throw NetworkError.unauthorized
             }
             guard (200..<300).contains(http.statusCode) else {
-                let msg = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
-                    ?? String(data: data, encoding: .utf8) ?? "サーバーエラー"
+                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                let msg = json?["error"] as? String
+                    ?? (data.isEmpty ? "サーバーエラーが発生しました（コード: \(http.statusCode)）" : String(data: data, encoding: .utf8))
+                    ?? "サーバーエラー"
                 throw NetworkError.serverError(http.statusCode, msg)
             }
             do {
