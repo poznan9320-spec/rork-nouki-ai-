@@ -1,16 +1,42 @@
 import Foundation
 
+enum DeliveryStatus: String, Codable {
+    case pending = "PENDING"
+    case shipped = "SHIPPED"
+    case delivered = "DELIVERED"
+    case delayed = "DELAYED"
+    case cancelled = "CANCELLED"
+    case unknown
+
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = DeliveryStatus(rawValue: raw) ?? .unknown
+    }
+
+    var displayName: String {
+        switch self {
+        case .pending:   return "未着"
+        case .shipped:   return "出荷済"
+        case .delivered: return "着荷"
+        case .delayed:   return "遅延"
+        case .cancelled: return "キャンセル"
+        case .unknown:   return "不明"
+        }
+    }
+}
+
 nonisolated struct Delivery: Codable, Identifiable {
     let id: String
     let productName: String
     let quantity: Int
     let deliveryDate: Date
+    let status: DeliveryStatus
     let supplierName: String?
     let notes: String?
     let sourceUrl: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, productName, quantity, deliveryDate, supplierName, notes, sourceUrl
+        case id, productName, quantity, deliveryDate, status, supplierName, notes, sourceUrl
     }
 
     nonisolated init(from decoder: Decoder) throws {
@@ -18,6 +44,7 @@ nonisolated struct Delivery: Codable, Identifiable {
         id = try container.decode(String.self, forKey: .id)
         productName = try container.decode(String.self, forKey: .productName)
         quantity = try container.decode(Int.self, forKey: .quantity)
+        status = try container.decodeIfPresent(DeliveryStatus.self, forKey: .status) ?? .pending
         supplierName = try container.decodeIfPresent(String.self, forKey: .supplierName)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
         sourceUrl = try container.decodeIfPresent(String.self, forKey: .sourceUrl)
