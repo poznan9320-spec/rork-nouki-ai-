@@ -20,6 +20,15 @@ final class SearchViewModel {
         guard !trimmed.isEmpty else { return }
         messages.append(ChatMessage(role: .user, content: trimmed))
         input = ""
+
+        if DemoMode.shared.isActive {
+            isLoading = true
+            try? await Task.sleep(nanoseconds: 800_000_000) // simulate network delay
+            messages.append(ChatMessage(role: .assistant, content: DemoMode.demoChatReply(for: trimmed)))
+            isLoading = false
+            return
+        }
+
         isLoading = true
         errorMessage = nil
         do {

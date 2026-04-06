@@ -39,6 +39,18 @@ nonisolated struct Delivery: Codable, Identifiable {
         case id, productName, quantity, deliveryDate, status, supplierName, notes, sourceUrl
     }
 
+    nonisolated init(id: String, productName: String, quantity: Int, deliveryDate: Date,
+                     status: DeliveryStatus, supplierName: String?, notes: String?, sourceUrl: String?) {
+        self.id = id
+        self.productName = productName
+        self.quantity = quantity
+        self.deliveryDate = deliveryDate
+        self.status = status
+        self.supplierName = supplierName
+        self.notes = notes
+        self.sourceUrl = sourceUrl
+    }
+
     nonisolated init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)

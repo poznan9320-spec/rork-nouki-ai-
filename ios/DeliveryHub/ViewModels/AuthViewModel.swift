@@ -44,6 +44,16 @@ final class AuthViewModel {
             errorMessage = "メールアドレスとパスワードを入力してください"
             return
         }
+
+        // Demo mode: bypass network authentication
+        if email == "demo@ai-nouki.com" && password == "Demo1234!" {
+            DemoMode.shared.isActive = true
+            user = DemoMode.demoUser
+            company = DemoMode.demoCompany
+            isLoggedIn = true
+            return
+        }
+
         isLoading = true
         errorMessage = nil
         do {
@@ -61,6 +71,7 @@ final class AuthViewModel {
     }
 
     func logout() {
+        DemoMode.shared.isActive = false
         KeychainService.deleteToken()
         isLoggedIn = false
         user = nil

@@ -47,6 +47,26 @@ final class IngestViewModel {
         errorMessage = nil
         ocrItems = []
 
+        if DemoMode.shared.isActive {
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            let supplier = supplierName.trimmingCharacters(in: .whitespacesAndNewlines)
+            ocrItems = [
+                OCRItem(productName: "デモ商品A", quantity: 50, deliveryDate: {
+                    let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+                    return f.string(from: Date())
+                }(), notes: "デモデータ"),
+                OCRItem(productName: "デモ商品B", quantity: 20, deliveryDate: {
+                    let cal = Calendar.current
+                    let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+                    return f.string(from: cal.date(byAdding: .day, value: 1, to: Date()) ?? Date())
+                }(), notes: nil),
+            ]
+            ocrSourceType = "TEXT"
+            if supplier.isEmpty { supplierName = "デモ取引先" }
+            isProcessingOCR = false
+            return
+        }
+
         var imageData: Data? = nil
         if let image = selectedImage,
            let jpeg = image.jpegData(compressionQuality: 0.7) {
@@ -83,6 +103,14 @@ final class IngestViewModel {
         isSubmitting = true
         errorMessage = nil
         successMessage = nil
+
+        if DemoMode.shared.isActive {
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            successMessage = "\(ocrItems.count)件の入荷データを登録しました"
+            resetOCR()
+            isSubmitting = false
+            return
+        }
 
         let supplier = supplierName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : supplierName
 
@@ -125,6 +153,14 @@ final class IngestViewModel {
         isSubmitting = true
         errorMessage = nil
         successMessage = nil
+
+        if DemoMode.shared.isActive {
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            successMessage = "入荷データを登録しました"
+            resetManual()
+            isSubmitting = false
+            return
+        }
 
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"

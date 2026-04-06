@@ -49,6 +49,10 @@ final class HomeViewModel {
 
     @MainActor
     func load() async {
+        if DemoMode.shared.isActive {
+            deliveries = DemoMode.demoDeliveries
+            return
+        }
         isLoading = true
         errorMessage = nil
         do {
