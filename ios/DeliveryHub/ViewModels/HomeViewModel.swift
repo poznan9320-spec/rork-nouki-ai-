@@ -57,12 +57,24 @@ final class HomeViewModel {
         errorMessage = nil
         do {
             deliveries = try await NetworkService.shared.fetchDeliveries()
-            await NotificationService.shared.scheduleDeliveryNotifications(deliveries: deliveries)
+            let notificationSettings = await currentNotificationSettings()
+            await NotificationService.shared.scheduleDeliveryNotifications(
+                deliveries: deliveries,
+                settings: notificationSettings
+            )
         } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch {
             errorMessage = "データの取得に失敗しました。"
         }
         isLoading = false
+    }
+
+    private func currentNotificationSettings() async -> NotificationSettings {
+        if let remoteSettings = try? await NetworkService.shared.fetchNotificationSettings() {
+            NotificationService.shared.cacheSettings(remoteSettings)
+            return remoteSettings
+        }
+        return NotificationService.shared.cachedSettings()
     }
 }

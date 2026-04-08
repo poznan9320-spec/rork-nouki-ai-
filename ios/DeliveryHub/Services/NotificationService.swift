@@ -3,11 +3,15 @@ import Foundation
 
 final class NotificationService: @unchecked Sendable {
     static let shared = NotificationService()
+    private let settingsKey = "delivery_notification_settings"
 
     func requestPermission() async -> Bool {
         let center = UNUserNotificationCenter.current()
-        let settings = await center.notificationSettings()
-        if settings.authorizationStatus == .authorized { return true }
+        let currentStatus = await center.notificationSettings().authorizationStatus
+        if currentStatus == .authorized || currentStatus == .provisional || currentStatus == .ephemeral {
+            return true
+        }
+
         do {
             return try await center.requestAuthorization(options: [.alert, .badge, .sound])
         } catch {
@@ -15,15 +19,49 @@ final class NotificationService: @unchecked Sendable {
         }
     }
 
-    func scheduleDeliveryNotifications(deliveries: [Delivery]) async {
+    func authorizationStatus() async -> UNAuthorizationStatus {
         let center = UNUserNotificationCenter.current()
-        let settings = await center.notificationSettings()
-        guard settings.authorizationStatus == .authorized else { return }
+        return await center.notificationSettings().authorizationStatus
+    }
 
-        // 既存の納期通知を削除
+    func requestPermissionIfNeeded() async -> Bool {
+        switch await authorizationStatus() {
+        case .authorized, .provisional, .ephemeral:
+            return true
+        case .notDetermined:
+            return await requestPermission()
+        case .denied:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+
+    func cachedSettings() -> NotificationSettings {
+        guard let data = UserDefaults.standard.data(forKey: settingsKey),
+              let settings = try? JSONDecoder().decode(NotificationSettings.self, from: data) else {
+            return NotificationSettings(todayHour: 7, tomorrowHour: 18, enabled: true)
+        }
+        return settings
+    }
+
+    func cacheSettings(_ settings: NotificationSettings) {
+        guard let data = try? JSONEncoder().encode(settings) else { return }
+        UserDefaults.standard.set(data, forKey: settingsKey)
+    }
+
+    func scheduleDeliveryNotifications(deliveries: [Delivery], settings: NotificationSettings) async {
+        let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: [
             "today_delivery", "tomorrow_delivery"
         ])
+
+        let authorization = await center.notificationSettings().authorizationStatus
+        guard authorization == .authorized || authorization == .provisional || authorization == .ephemeral else {
+            return
+        }
+
+        guard settings.enabled else { return }
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -32,10 +70,9 @@ final class NotificationService: @unchecked Sendable {
         let todayItems = deliveries.filter { calendar.isDate($0.deliveryDate, inSameDayAs: today) }
         let tomorrowItems = deliveries.filter { calendar.isDate($0.deliveryDate, inSameDayAs: tomorrow) }
 
-        // 本日の入荷 → 朝7時に通知
         if !todayItems.isEmpty {
             var components = calendar.dateComponents([.year, .month, .day], from: today)
-            components.hour = 7
+            components.hour = settings.todayHour
             components.minute = 0
 
             let content = UNMutableNotificationContent()
@@ -51,10 +88,9 @@ final class NotificationService: @unchecked Sendable {
             try? await center.add(request)
         }
 
-        // 明日の入荷 → 当日の夕方18時に通知
         if !tomorrowItems.isEmpty {
             var components = calendar.dateComponents([.year, .month, .day], from: today)
-            components.hour = 18
+            components.hour = settings.tomorrowHour
             components.minute = 0
 
             let content = UNMutableNotificationContent()

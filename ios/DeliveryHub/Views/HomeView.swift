@@ -24,6 +24,8 @@ struct HomeView: View {
                         deliveryList
                     }
                 }
+                .frame(maxWidth: AdaptiveLayout.contentWidth)
+                .frame(maxWidth: .infinity)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

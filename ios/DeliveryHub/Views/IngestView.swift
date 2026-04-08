@@ -2,8 +2,13 @@ import SwiftUI
 import PhotosUI
 
 struct IngestView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var viewModel = IngestViewModel()
     @State private var photosPickerItem: PhotosPickerItem? = nil
+
+    private var isRegularWidth: Bool {
+        horizontalSizeClass == .regular
+    }
 
     var body: some View {
         NavigationStack {
@@ -36,6 +41,8 @@ struct IngestView: View {
                         .padding(16)
                     }
                 }
+                .frame(maxWidth: AdaptiveLayout.contentWidth)
+                .frame(maxWidth: .infinity)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -108,8 +115,27 @@ struct IngestView: View {
     // MARK: - OCR Section
 
     private var ocrSection: some View {
+        Group {
+            if isRegularWidth && !viewModel.ocrItems.isEmpty {
+                HStack(alignment: .top, spacing: 16) {
+                    ocrInputColumn
+                        .frame(maxWidth: .infinity)
+                    ocrResultSection
+                        .frame(width: AdaptiveLayout.sidePanelWidth)
+                }
+            } else {
+                VStack(spacing: 16) {
+                    ocrInputColumn
+                    if !viewModel.ocrItems.isEmpty {
+                        ocrResultSection
+                    }
+                }
+            }
+        }
+    }
+
+    private var ocrInputColumn: some View {
         VStack(spacing: 16) {
-            // Image picker
             card {
                 VStack(spacing: 12) {
                     if let image = viewModel.selectedImage {
@@ -143,7 +169,6 @@ struct IngestView: View {
                 }
             }
 
-            // Free text input
             card {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("または テキスト入力")
@@ -170,15 +195,11 @@ struct IngestView: View {
                 }
             }
 
-            // Supplier
             card {
                 ingestField("仕入先（任意）", placeholder: "例：〇〇商事", text: $viewModel.supplierName)
             }
 
-            // OCR button
-            Button {
-                Task { await viewModel.runOCR() }
-            } label: {
+            Button(action: runOCR) {
                 ZStack {
                     if viewModel.isProcessingOCR {
                         HStack(spacing: 10) {
@@ -197,11 +218,6 @@ struct IngestView: View {
                 .clipShape(.rect(cornerRadius: 14))
             }
             .disabled(viewModel.isProcessingOCR || viewModel.isSubmitting)
-
-            // Extracted items
-            if !viewModel.ocrItems.isEmpty {
-                ocrResultSection
-            }
         }
     }
 
@@ -359,6 +375,10 @@ struct IngestView: View {
         .foregroundStyle(color)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 4)
+    }
+
+    private func runOCR() {
+        Task { await viewModel.runOCR() }
     }
 }
 

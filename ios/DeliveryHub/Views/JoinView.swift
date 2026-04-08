@@ -117,6 +117,9 @@ struct JoinView: View {
                         .padding(.horizontal, 28)
                         .padding(.bottom, 40)
                     }
+                    .frame(maxWidth: AdaptiveLayout.formWidth)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 24)
                 }
             }
         }

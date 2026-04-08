@@ -7,6 +7,8 @@ struct LoginView: View {
     @FocusState private var focusedField: Field?
     @State private var showJoin: Bool = false
 
+    private let webLoginURL = URL(string: "https://ai-nouki2.vercel.app/login")
+
     enum Field { case email, password }
 
     var body: some View {
@@ -31,6 +33,9 @@ struct LoginView: View {
                         Text("B2B配送・納期管理システム")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.5))
+                        Text("Web版と同じアカウントでログインできます")
+                            .font(.caption)
+                            .foregroundColor(Color(hex: "7A9ABF"))
                     }
                     .padding(.top, 80)
                     .padding(.bottom, 48)
@@ -120,6 +125,20 @@ struct LoginView: View {
 
                     Spacer().frame(height: 32)
 
+                    if let webLoginURL {
+                        Link(destination: webLoginURL) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "safari")
+                                    .font(.system(size: 14))
+                                Text("Web版ログインを開く")
+                                    .font(.subheadline)
+                            }
+                            .foregroundColor(.white.opacity(0.75))
+                        }
+
+                        Spacer().frame(height: 12)
+                    }
+
                     Button {
                         showJoin = true
                     } label: {
@@ -134,6 +153,9 @@ struct LoginView: View {
 
                     Spacer().frame(height: 40)
                 }
+                .frame(maxWidth: AdaptiveLayout.formWidth)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
             }
         }
         .fullScreenCover(isPresented: $showJoin) {

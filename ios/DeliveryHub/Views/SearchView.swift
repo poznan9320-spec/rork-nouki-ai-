@@ -30,64 +30,69 @@ struct SearchView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .frame(maxWidth: AdaptiveLayout.contentWidth)
+            .frame(maxWidth: .infinity)
             .background(Color(hex: "0D1B2A"))
 
             Divider().background(Color(hex: "1E3A5A"))
 
             // Messages
             GeometryReader { geo in
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            if viewModel.messages.isEmpty {
-                                emptyState
-                            } else {
-                                // 上部の余白：メッセージを下に寄せる
-                                Color.clear.frame(height: 1).id("top")
-                            }
-
-                            ForEach(viewModel.messages) { msg in
-                                MessageBubble(message: msg)
-                                    .id(msg.id)
-                            }
-
-                            if viewModel.isLoading {
-                                HStack(alignment: .bottom, spacing: 8) {
-                                    botAvatar
-                                    typingIndicator
-                                    Spacer()
+                HStack(spacing: 0) {
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                if viewModel.messages.isEmpty {
+                                    emptyState
+                                } else {
+                                    // 上部の余白：メッセージを下に寄せる
+                                    Color.clear.frame(height: 1).id("top")
                                 }
-                                .padding(.horizontal, 14)
-                                .id("loading")
-                            }
 
-                            if let error = viewModel.errorMessage {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "exclamationmark.circle.fill")
-                                        .font(.system(size: 13))
-                                    Text(error)
-                                        .font(.system(size: 13))
+                                ForEach(viewModel.messages) { msg in
+                                    MessageBubble(message: msg)
+                                        .id(msg.id)
                                 }
-                                .foregroundStyle(Color(hex: "EF4444"))
-                                .padding(.horizontal, 20)
-                                .id("error")
-                            }
 
-                            Color.clear.frame(height: 1).id("bottom")
+                                if viewModel.isLoading {
+                                    HStack(alignment: .bottom, spacing: 8) {
+                                        botAvatar
+                                        typingIndicator
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 14)
+                                    .id("loading")
+                                }
+
+                                if let error = viewModel.errorMessage {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "exclamationmark.circle.fill")
+                                            .font(.system(size: 13))
+                                        Text(error)
+                                            .font(.system(size: 13))
+                                    }
+                                    .foregroundStyle(Color(hex: "EF4444"))
+                                    .padding(.horizontal, 20)
+                                    .id("error")
+                                }
+
+                                Color.clear.frame(height: 1).id("bottom")
+                            }
+                            .padding(.vertical, 14)
+                            .frame(minHeight: geo.size.height, alignment: .bottom)
                         }
-                        .padding(.vertical, 14)
-                        // メッセージ全体の最小高さをScrollView高さに合わせてメッセージを下揃えに
-                        .frame(minHeight: geo.size.height, alignment: .bottom)
+                        .background(Color(hex: "0A1628"))
+                        .defaultScrollAnchor(.bottom)
+                        .onChange(of: viewModel.messages.count) {
+                            withAnimation { proxy.scrollTo("bottom") }
+                        }
+                        .onChange(of: viewModel.isLoading) {
+                            withAnimation { proxy.scrollTo("bottom") }
+                        }
                     }
-                    .background(Color(hex: "0A1628"))
-                    .defaultScrollAnchor(.bottom)
-                    .onChange(of: viewModel.messages.count) {
-                        withAnimation { proxy.scrollTo("bottom") }
-                    }
-                    .onChange(of: viewModel.isLoading) {
-                        withAnimation { proxy.scrollTo("bottom") }
-                    }
+                    .frame(maxWidth: AdaptiveLayout.contentWidth)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             // Input bar
@@ -126,6 +131,8 @@ struct SearchView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+            .frame(maxWidth: AdaptiveLayout.contentWidth)
+            .frame(maxWidth: .infinity)
             .background(Color(hex: "0D1B2A"))
         }
         .background(Color(hex: "0A1628"))
